@@ -1,0 +1,6 @@
+all_old
+__pycache__/
+weights/
+test_results/
+weights
+test_results

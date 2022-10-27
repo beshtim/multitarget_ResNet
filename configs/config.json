@@ -1,0 +1,40 @@
+{
+    "config_name": "0",
+    "data": {
+        "path_to_images": "path/to/images",
+        "path_to_train_json": "path/to/train.json",
+        "path_to_val_json": "path/to/val.json",
+        "path_to_test_json": "path/to/test.json",
+        "path_to_test_result_output_folder": "test_results/",
+        "path_to_pytorch_pretrained_model": "weights/resnet34-b627a593.pth"
+    },
+    "classifier": {
+        "resnet_layers": [3, 4, 6, 3],
+
+        "num_classes": [11, 23, 1, 1, 4],
+        "keys_outputs": ["general_type", "type", "has_screen", "has_timer", "arrows_num"],
+        "general_types": ["vertical_3", "dop_right", "dop_left", "dop_both", "horizontal_3", "vertical_2", "walker", "railway", "reversible_2", "tram", "tl_1"],
+        "types": ["T1", "T2_L", "T2_R", "T2_F", "T2_F_R", "T2_F_L", "T3", "T9", "T1_R", "T3_R", "T1_L", "T1_LR", "T1_H", "P1", "P2", "T8", "IS_L", "IS_R", "T6_D", "T4", "T5", "T6", "T7"]
+    },
+    "train_config": {
+        "weights_path": "weights/",
+        "start_epoch": 0,
+        "epochs": 180,
+        "batch_size": 134,
+        "workers": 4,
+        "learning_rate": 0.1,
+        "momentum": 0.9,
+        "weight_decay": 1e-4,
+        "print_freq": 10,
+        "resume": null,
+        "use_criterion_weights": true,
+        "use_pytorch_pretrained_model": true,
+        "resize_h": 240,
+        "resize_w": 120,
+        "transform_train": {
+            "use_motion_blur": true,
+            "use_planckian_jitter": true,
+            "use_random_affine": true
+        }
+    }
+}
