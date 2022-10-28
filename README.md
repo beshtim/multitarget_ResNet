@@ -1,6 +1,6 @@
 # Classifier
 
-This classifier is designed to train a classifier from COCO markup attributes. The ResNet-34 network is taken as the basis for the classifier.
+This classifier is designed to train a classifier from COCO markup attributes(). The ResNet-34 network is taken as the basis for the classifier.
 
 ## Start training
 
@@ -64,3 +64,46 @@ All settings for training and testing are exclusively in the configs. <br><b> Yo
         - **use_motion_blur** - use [motion blur](https://kornia.readthedocs.io/en/latest/augmentation.module.html#kornia.augmentation.RandomMotionBlur) during training or not.
         - **use_planckian_jitter** - use [planckian jitter](https://kornia.readthedocs.io/en/latest/augmentation.module.html#kornia.augmentation.RandomPlanckianJitter) during training or not.
         - **use_random_affine** - use [random affine](https://kornia.readthedocs.io/en/latest/augmentation.module.html#kornia.augmentation.RandomAffine) during training or not.
+
+
+# COCO Format example
+
+```json
+{
+    "licenses": [],
+    "info": {},
+    "categories": [],
+    "images": [
+      {
+        "id": 1,
+        "width": 1,
+        "height": 1,
+        "file_name": "1.jpg",
+        "license": 0,
+        "flickr_url": "",
+        "coco_url": "",
+        "date_captured": 0
+      } ...
+    ],
+    "annotations": [
+      {
+        "id": 1,
+        "image_id": 1,
+        "category_id": 1,
+        "segmentation": [[<polygon>]],
+        "area": 1,
+        "bbox": [<x, y, width, height>],
+        "iscrowd": 0,
+        "attributes": {
+          "extra_attrib_0": <bool/str>,
+          .
+          .
+          .
+          "extra_attrib_N": <bool/str>,
+        }
+      } ...
+    ]
+  }
+```
+
+
