@@ -1,6 +1,6 @@
 # Classifier
 
-This classifier is designed to train a classifier from COCO markup attributes(). The ResNet-34 network is taken as the basis for the classifier.
+This classifier is designed to train a classifier from COCO markup attributes (<i>see COCO example below</i>). The ResNet-34 network is taken as the basis for the classifier.
 
 ## Start training
 
