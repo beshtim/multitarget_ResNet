@@ -12,9 +12,9 @@
         "resnet_layers": [3, 4, 6, 3],
 
         "num_classes": [11, 23, 1, 1, 4],
-        "keys_outputs": ["general_type", "type", "has_screen", "has_timer", "arrows_num"],
-        "general_types": ["vertical_3", "dop_right", "dop_left", "dop_both", "horizontal_3", "vertical_2", "walker", "railway", "reversible_2", "tram", "tl_1"],
-        "types": ["T1", "T2_L", "T2_R", "T2_F", "T2_F_R", "T2_F_L", "T3", "T9", "T1_R", "T3_R", "T1_L", "T1_LR", "T1_H", "P1", "P2", "T8", "IS_L", "IS_R", "T6_D", "T4", "T5", "T6", "T7"]
+        "keys_outputs": ["general_type", "type", "binary_attrib1", "binary_attrib2", "int_attrib"],
+        "general_types": ['GT0', 'GT1', 'GT2', 'GT3', 'GT4', 'GT5', 'GT6', 'GT7', 'GT8', 'GT9', 'GT10'],
+        "types": ['T0', 'T1', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'T8', 'T9', 'T10', 'T11', 'T12', 'T13', 'T14', 'T15', 'T16', 'T17', 'T18', 'T19', 'T20', 'T21', 'T22']
     },
     "train_config": {
         "weights_path": "weights/",
