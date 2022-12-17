@@ -64,7 +64,21 @@ All settings for training and testing are exclusively in the configs. <br><b> Yo
         - **use_motion_blur** - use [motion blur](https://kornia.readthedocs.io/en/latest/augmentation.module.html#kornia.augmentation.RandomMotionBlur) during training or not.
         - **use_planckian_jitter** - use [planckian jitter](https://kornia.readthedocs.io/en/latest/augmentation.module.html#kornia.augmentation.RandomPlanckianJitter) during training or not.
         - **use_random_affine** - use [random affine](https://kornia.readthedocs.io/en/latest/augmentation.module.html#kornia.augmentation.RandomAffine) during training or not.
+- **trt_precision** - fp16/fp32 (int8 to come) 
+# TensorRT (TODO)
 
+So far, only compilation in TRT has been added. Conclusion and test will be added soon.
+
+Use docker-compose to build it. Select TRT precision in configs (only fp32 and fp16 | int8 need some fixes)
+
+Edit docker-compose.yml: add volume to weights folder at least
+
+### Run script 
+```bash 
+docker-compose build
+docker-compose up
+
+```
 
 # COCO Format example
 
@@ -105,5 +119,3 @@ All settings for training and testing are exclusively in the configs. <br><b> Yo
     ]
   }
 ```
-
-

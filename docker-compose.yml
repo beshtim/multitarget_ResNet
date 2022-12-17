@@ -1,0 +1,18 @@
+version: '2.3'
+
+services:
+  classifier:
+    restart: "no"
+    container_name: classifier
+    mem_limit: 8G
+    build:
+      context: .
+      dockerfile: Dockerfile
+    runtime: nvidia
+    environment:
+     - NVIDIA_VISIBLE_DEVICES=all
+    image: classifier:latest
+    volumes:
+      - /path/on/local:/path/in/container # if needed
+    network_mode: host
+    command: bash -c "python build_trt.py" # add cmd

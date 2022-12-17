@@ -1,5 +1,5 @@
 {
-    "config_name": "08.22.22_binary",
+    "config_name": "08.22.22",
     "data": {
         "path_to_images": "/path/images",
         "path_to_train_json": "/path/train.json",
@@ -10,9 +10,10 @@
     },
     "classifier": {
         "resnet_layers": [3, 4, 6, 3],
+        "block_str": "BasicBlock",
 
-        "keys_outputs": ["wrong_position", "has_deformation", "has_signal", "has_signal_defect"],
-        "num_classes": [1, 1, 1, 1]
+        "num_classes": [1, 1],
+        "keys_outputs": ["open", "gate"]
     },
     "train_config": {
         "weights_path": "weights/",
@@ -27,11 +28,11 @@
         "resume": null,
         "use_criterion_weights": true,
         "use_pytorch_pretrained_model": true,
-        "resize_h": 240,
+        "resize_h": 120,
         "resize_w": 120,
         "transform_train": {
-            "use_motion_blur": true,
-            "use_planckian_jitter": true,
+            "use_motion_blur": false,
+            "use_planckian_jitter": false,
             "use_random_affine": false
         }
     },

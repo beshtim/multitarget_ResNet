@@ -7,8 +7,8 @@ import pandas as pd
 
 from tabulate import tabulate
 from types import SimpleNamespace
-from Classifier import ResNetTL, Predictor
-from utils import get_data_loader, get_transform
+from scripts.Classifier import ResNetTL, Predictor
+from scripts.utils import get_data_loader, get_transform
 
 
 def save_data(statistics, confusion_matrix, keys_outputs, path_to_output):
@@ -245,7 +245,7 @@ def main():
     model = ResNetTL(num_classes=args.classifier.num_classes).cuda()
     model.load_state_dict(state_dict)
     model.eval()
-    net = Predictor(model, args.classifier.keys_outputs, device='cuda')
+    net = Predictor(model, args, device='cuda')
     
     test(model_predictor=net, args=args)
 

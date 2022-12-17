@@ -10,7 +10,7 @@ from kornia.augmentation import *
 from torchvision import transforms as T
 from sklearn.metrics import f1_score as f1_score_metric
 from sklearn.utils.class_weight import compute_class_weight
-from Dataloader import TrafficLightsDataset
+from scripts.Dataloader import TrafficLightsDataset
 
 
 def train(train_loader, model, criterion, optimizer, epoch, args):
@@ -171,23 +171,24 @@ def get_transform(args, train=False):
 
 
 def get_data_loader(args, path_to_json, transform, shuffle=True):
-    if 'general_type' in args.classifier.keys_outputs:
-        from_general_type_to_int = {v: k for k, v in enumerate(args.classifier.general_types)}
-    else:
-        from_general_type_to_int = None
     
-    if 'type' in args.classifier.keys_outputs:
-        from_type_to_int = {v: k for k, v in enumerate(args.classifier.types)}
-    else:
-        from_type_to_int = None
+    categorical_type_to_int = {}
+
+    for key_o in args.classifier.keys_outputs:
+        try:
+            if key_o in args.classifier.categorical.__dict__.keys():
+                from_type_to_int = {v: k for k, v in enumerate(args.classifier.categorical.__dict__[key_o])}
+                categorical_type_to_int[key_o] = from_type_to_int
+        except AttributeError:
+            categorical_type_to_int = None
+            break
     
     dataset = TrafficLightsDataset(
         args.data.path_to_images,
         path_to_json,
         args.classifier.keys_outputs,
         transform,
-        from_general_type_to_int,
-        from_type_to_int
+        categorical_type_to_int
     )
     
     loader = torch.utils.data.DataLoader(

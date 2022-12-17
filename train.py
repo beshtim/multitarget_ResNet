@@ -6,8 +6,8 @@ import torch
 import torch.optim
 import torch.backends.cudnn as cudnn
 
-from utils import *
-from Classifier import ResNetTL
+from scripts.utils import *
+from scripts.Classifier import ResNetTL
 from types import SimpleNamespace
 
 
