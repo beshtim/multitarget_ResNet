@@ -29,19 +29,9 @@ class TrafficLightsDataset(Dataset):
         self.annotations = json_data['annotations']
 
         if categorical_type_to_int:
-            print(categorical_type_to_int)
-            exit()
             for key_o in categorical_type_to_int.keys():
                 for annotation in self.annotations:
                     annotation['attributes'][key_o] = categorical_type_to_int[annotation['attributes'][key_o]]
-
-        # if from_general_type_to_int:
-        #     for annotation in self.annotations:
-        #         annotation['attributes']['general_type'] = from_general_type_to_int[annotation['attributes']['general_type']]
-        
-        # if from_type_to_int:
-        #     for annotation in self.annotations:
-        #         annotation['attributes']['type'] = from_type_to_int[annotation['attributes']['type']]
 
         self.images_id_to_name = {image['id']: image['file_name']
                                     for image in json_data['images']}
