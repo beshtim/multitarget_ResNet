@@ -67,7 +67,7 @@ All settings for training and testing are exclusively in the configs. <br><b> Yo
 - **trt_precision** - fp16/fp32 (int8 to come) 
 # TensorRT (TODO)
 
-So far, only compilation in TRT has been added. Conclusion and test will be added soon.
+So far, only compilation in TRT has been added. Inference and test will be added soon.
 
 Use docker-compose to build it. Select TRT precision in configs (only fp32 and fp16 | int8 need some fixes)
 
