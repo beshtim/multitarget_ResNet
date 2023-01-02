@@ -5,7 +5,7 @@ import argparse
 
 from types import SimpleNamespace
 from scripts.Classifier import ResNetTL, Predictor
-from scripts.build_engine import EngineBuilder
+from scripts.TensorRT.build_engine import EngineBuilder
                 
 def main():
     parser = argparse.ArgumentParser(description='PyTorch Training')

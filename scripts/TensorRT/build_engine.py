@@ -8,7 +8,7 @@ import tensorrt as trt
 import pycuda.driver as cuda
 import pycuda.autoinit
 
-from scripts.image_batcher import ImageBatcher
+from scripts.TensorRT.image_batcher import ImageBatcher
 
 
 logging.basicConfig(level=logging.INFO)

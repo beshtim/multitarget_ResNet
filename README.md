@@ -67,11 +67,14 @@ All settings for training and testing are exclusively in the configs. <br><b> Yo
 - **trt_precision** - fp16/fp32 (int8 to come) 
 # TensorRT (TODO)
 
-So far, only compilation in TRT has been added. Inference and test will be added soon.
+So far, only compilation and inference in TRT has been added. Test will be added soon.
+You can check <i>build_trt.py</i> and <i>./scripts/TensorRT/</i> folder for the code. 
 
 Use docker-compose to build it. Select TRT precision in configs (only fp32 and fp16 | int8 need some fixes)
 
 Edit docker-compose.yml: add volume to weights folder at least
+
+P.S. you can check <i>./scripts/Classifier.py -> class ClassifierNew</i> for TensorRT modeling with torch2trt. Only this class is implemented and not used anywere yet
 
 ### Run script 
 ```bash 
