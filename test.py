@@ -7,7 +7,7 @@ import pandas as pd
 
 from tabulate import tabulate
 from types import SimpleNamespace
-from scripts.Classifier import ResNetTL, Predictor
+from scripts.Classifier import ResNetTL, Predictor, ClassifierNew
 from scripts.utils import get_data_loader, get_transform
 
 
@@ -234,8 +234,17 @@ def test(model_predictor, args):
 def main():
     parser = argparse.ArgumentParser(description='PyTorch Training')
     parser.add_argument('--config', default='configs/config.json')
-    config_file = parser.parse_args().config
-    
+    parser.add_argument('-trt', '--torch2trt', action='store_true', help="Use torch2trt for testing")
+    parser.add_argument('-d', '--device', default='cuda')
+    parser.add_argument('-na', '--name_add', default='')
+
+    argprs = parser.parse_args()
+
+    config_file = argprs.config
+    trt = argprs.torch2trt
+    d = argprs.device
+    na = argprs.name_add
+
     with open(config_file, "r") as f:
         args = json.load(f, object_hook=lambda d: SimpleNamespace(**d))
     
@@ -246,6 +255,8 @@ def main():
     model.load_state_dict(state_dict)
     model.eval()
     net = Predictor(model, args, device='cuda')
+
+    # net = ClassifierNew(path_to_model=model_path, cfg=args, batch_size=1, name_add=na, device=d, use_trt=trt) #TODO need check
     
     test(model_predictor=net, args=args)
 

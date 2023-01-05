@@ -4,6 +4,7 @@ import torch.nn as nn
 
 from torchvision.models.resnet import ResNet, BasicBlock, Bottleneck
 from torchvision import transforms as T
+import torch.nn.functional as F
 import os 
 import logging
 logger = logging.basicConfig(level=logging.INFO)
@@ -82,9 +83,10 @@ class Predictor:
 
 # TensorRT model using torch2trt
 class ClassifierNew:
-    def __init__(self, path_to_model: str, batch_size: int=1, name_add='', device: str="cuda", use_trt=True):
+    def __init__(self, path_to_model: str, cfg, batch_size: int=1, name_add='', device: str="cuda", use_trt=True):
         self.device = torch.device(device)
         self.bs = batch_size
+        self.cfg = cfg
 
         logger.info('Loading model...')
         model_data = torch.load(path_to_model)
@@ -92,16 +94,21 @@ class ClassifierNew:
         self.output_keys = ['pred_' + key for key in model_data['classifier_config'].keys_outputs]
         logger.info('Model loaded.')
         
+        self.h, self.w = cfg.train_config.resize_h, cfg.train_config.resize_w 
+        block = cfg.classifier.block_str
+        layers = cfg.classifier.resnet_layers
+
         if 'cpu' in self.device.type:
             # Jit
-            self.model = ResNetTL(BasicBlock, [3, 4, 6, 3], self.num_classes)  # ResNet34
+            self.model = ResNetTL(block, layers, self.num_classes)  # BasicBlock - ResNet34
             self.model.load_state_dict(model_data['state_dict'])
             self.model.eval()
-            self.model = torch.jit.trace(self.model, torch.ones(batch_size, 3, 240, 120).to(self.device), strict=False)
+            self.model = torch.jit.trace(self.model, torch.ones(batch_size, 3, self.h, self.w).to(self.device), strict=False)
         elif 'cuda' in self.device.type and use_trt:
             # TensorRT
             from torch2trt import torch2trt, TRTModule
-            trt_model_name = "classifier{}_bs{}.trt".format(name_add, batch_size)
+            # trt_model_name = "classifier{}_bs{}.trt".format(name_add, batch_size)
+            trt_model_name = "{}_{}_bs{}.trt".format("".join(os.path.dirname(path_to_model).split('.')[:-1]), name_add, batch_size)
             trt_model_path = os.path.join(os.path.dirname(path_to_model), trt_model_name)
             if os.path.isfile(trt_model_path):
                 logger.info("Loading existing TRT weights...")
@@ -110,17 +117,17 @@ class ClassifierNew:
                 logger.info("The model is loaded.")
             else:
                 logger.info("Converting to TensorRT...")
-                self.model = ResNetTL(BasicBlock, [3, 4, 6, 3], self.num_classes)  # ResNet34
+                self.model = ResNetTL(block, layers, self.num_classes)  # BasicBlock - ResNet34
                 self.model.load_state_dict(model_data['state_dict'])
                 self.model.eval()
-                x = torch.ones(1, 3, 240, 120).cuda()
+                x = torch.ones(1, 3, self.h, self.w).cuda()
                 self.model = torch2trt(self.model, [x], fp16_mode=True, max_batch_size=batch_size)
                 torch.save(self.model.state_dict(), trt_model_path)
                 logger.info("Converted to TensorRT.")
             self.model = self.model.cuda()
             
         elif 'cuda' in self.device.type:
-            self.model = ResNetTL(BasicBlock, [3, 4, 6, 3], self.num_classes)  # ResNet34
+            self.model = ResNetTL(block, layers, self.num_classes)  # BasicBlock - ResNet34
             self.model.load_state_dict(model_data['state_dict'])
             self.model.eval()
             self.model = self.model.cuda()
@@ -128,7 +135,7 @@ class ClassifierNew:
         self.normalize = T.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
 
     def _transform(self, im):
-        return self.normalize(F.interpolate(im.permute(2, 0, 1).unsqueeze(0), size=(240, 120)) / 255)
+        return self.normalize(F.interpolate(im.permute(2, 0, 1).unsqueeze(0), size=(self.h, self.w)) / 255)
 
     def __call__(self, images):
         if len(images) == 0:
