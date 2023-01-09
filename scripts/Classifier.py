@@ -108,7 +108,7 @@ class ClassifierNew:
             # TensorRT
             from torch2trt import torch2trt, TRTModule
             # trt_model_name = "classifier{}_bs{}.trt".format(name_add, batch_size)
-            trt_model_name = "{}_{}_bs{}.trt".format("".join(os.path.dirname(path_to_model).split('.')[:-1]), name_add, batch_size)
+            trt_model_name = "{}_{}_bs{}.trt".format("".join(os.path.basename(path_to_model).split('.')[:-1]), name_add, batch_size)
             trt_model_path = os.path.join(os.path.dirname(path_to_model), trt_model_name)
             if os.path.isfile(trt_model_path):
                 logger.info("Loading existing TRT weights...")
