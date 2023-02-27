@@ -78,8 +78,8 @@ P.S. you can check <i>./scripts/Classifier.py -> class ClassifierNew</i> for Ten
 
 ### Run script 
 ```bash 
-docker-compose build
-docker-compose up
+docker-compose -f docker/docker-compose.yml build
+docker-compose -f docker/docker-compose.yml up
 
 ```
 
