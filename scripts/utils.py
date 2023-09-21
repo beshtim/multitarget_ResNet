@@ -6,11 +6,11 @@ import torch
 import torch.nn as nn
 import torch.utils.data
 
-from kornia.augmentation import *
+from kornia.augmentation import RandomMotionBlur, RandomPlanckianJitter, RandomAffine, Resize, Normalize
 from torchvision import transforms as T
 from sklearn.metrics import f1_score as f1_score_metric
 from sklearn.utils.class_weight import compute_class_weight
-from scripts.Dataloader import TrafficLightsDataset
+from scripts.Dataloader import CocoAtribDataset, ImFolDataset
 
 
 def train(train_loader, model, criterion, optimizer, epoch, args):
@@ -114,7 +114,7 @@ def save_checkpoint(state, filename='checkpoint.pth', dir='weights'):
     torch.save(state, path)
 
 
-def get_criterion_weights(args, train_loader):
+def get_criterion_weights_coco(args, train_loader):
     if not args.train_config.use_criterion_weights:
         return [None] * len(args.classifier.num_classes)
     
@@ -133,6 +133,14 @@ def get_criterion_weights(args, train_loader):
     
     return weights
 
+def get_criterion_weights_if(args, train_loader): #TODO
+    raise NotImplemented
+
+def get_criterion_weights(data_type):
+    if data_type == 'IF':
+        return get_criterion_weights_if
+    else:
+        return get_criterion_weights_coco
 
 def get_criterion(args, train_loader):
     criterion = []
@@ -169,8 +177,25 @@ def get_transform(args, train=False):
     
     return T.Compose(output)
 
+def get_data_loader_if(args, path_2_data, transform, shuffle=True):
+    
+    dataset = ImFolDataset(
+        path_2_data,
+        args.classifier.keys_outputs,
+        transform
+    )
+    
+    loader = torch.utils.data.DataLoader(
+        dataset,
+        batch_size=args.train_config.batch_size,
+        shuffle=shuffle,
+        num_workers=args.train_config.workers,
+        pin_memory=True
+    )
+    
+    return loader
 
-def get_data_loader(args, path_to_json, transform, shuffle=True):
+def get_data_loader_coco(args, path_to_json, transform, shuffle=True):
     
     categorical_type_to_int = {}
 
@@ -183,7 +208,7 @@ def get_data_loader(args, path_to_json, transform, shuffle=True):
             categorical_type_to_int = None
             break
     
-    dataset = TrafficLightsDataset(
+    dataset = CocoAtribDataset(
         args.data.path_to_images,
         path_to_json,
         args.classifier.keys_outputs,
@@ -200,6 +225,12 @@ def get_data_loader(args, path_to_json, transform, shuffle=True):
     )
     
     return loader
+
+def get_data_loader(data_type):
+    if data_type == 'IF':
+        return get_data_loader_if
+    else:
+        return get_data_loader_coco
 
 
 class AverageMeter(object):

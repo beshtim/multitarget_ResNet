@@ -7,9 +7,9 @@ import numpy as np
 from PIL import Image
 from torch.utils.data import Dataset
 from kornia.augmentation import *
+import glob
 
-
-class TrafficLightsDataset(Dataset):
+class CocoAtribDataset(Dataset):
     def __init__(
         self, 
         path_to_images: str, 
@@ -59,5 +59,35 @@ class TrafficLightsDataset(Dataset):
         image_cut = image_cut[0][[2, 1, 0], :, :]
         
         output = [int(annotation['attributes'][key]) for key in self.keys_outputs]
+        
+        return image_cut, output
+
+class ImFolDataset(Dataset):
+    def __init__(self,
+                 path_to_images,
+                 keys_outputs: list,
+                 transform=None):
+        self.path_to_images = path_to_images
+        self.transform = transform
+        self.keys_outputs = keys_outputs
+
+        self.files = glob.glob(path_to_images + '/**/*.jpg', recursive=True)
+        self.mapping = dict((id, fol for id,fol in enumerate(os.listdir(path_to_images))))
+
+    def __len__(self):
+        return len(self.files)
+    
+    def __getitem__(self, idx):
+        path_to_image = self.files[idx]
+        
+        img = Image.open(path_to_image)  # RGB
+        r, g, b = img.split()
+        img = Image.merge("RGB", (b, g, r))  # BGR
+                
+        if self.transform:
+            image_cut = self.transform(img)
+        image_cut = image_cut[0][[2, 1, 0], :, :]
+        
+        output = [self.mapping[os.path.basename(os.path.dirname(path_to_image))]]
         
         return image_cut, output

@@ -18,15 +18,15 @@ def main_worker(args):
     print("=> creating model")
     model = ResNetTL(layers=args.classifier.resnet_layers, num_classes=args.classifier.num_classes)
     model = model.cuda()
-    
+
     # Data loading code
     transform = get_transform(args, train=True)
-    train_loader = get_data_loader(args, args.data.path_to_train_json, transform)
+    train_loader = get_data_loader(args.data_type)(args, args.data.path_to_train, transform)
     transform = get_transform(args, train=False)
-    val_loader = get_data_loader(args, args.data.path_to_val_json, transform, shuffle=False)
+    val_loader = get_data_loader(args.data_type)(args, args.data.path_to_val, transform, shuffle=False)
     
     # define loss function (criterion) and optimizer
-    criterion = get_criterion(args, train_loader)
+    criterion = get_criterion(args.data_type)(args, train_loader) 
     
     optimizer = torch.optim.SGD(model.parameters(), args.train_config.learning_rate,
                                 momentum=args.train_config.momentum,
