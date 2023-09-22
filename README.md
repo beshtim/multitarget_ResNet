@@ -1,6 +1,6 @@
 # Classifier
 
-This classifier is designed to train a classifier from COCO markup attributes (<i>see COCO example below</i>). The ResNet-34 network is taken as the basis for the classifier.
+This classifier is designed to train a classifier from COCO markup attributes (<i>see COCO example below</i>). The ResNet-34 network is taken as the basis for the classifier. For MultiLabel currently supports only coco attributes format. Also it has standart PyTorch ImageFolder logic for classification. 
 
 ## Start training
 
@@ -31,20 +31,21 @@ where *your_config.json* is the config with your settings.
 All settings for training and testing are exclusively in the configs. <br><b> You may need to tweak the Dataloader for your dataset </b>
 
 - **config_name** - config name. This name is used when saving weights and tests.
+- **data_type** - currently "IF" - for standart PyTorch ImageFolder(not multilabel) or "COCO"(supports multilabel).
 - **data** - contains paths to data and folders.
 
     - **path_to_images** - path to the folder with images.
-    - **path_to_train_json** - path to json with training data in COCO format.
-    - **path_to_val_json** - path to json with validation data in COCO format.
-    - **path_to_test_json** - path to json with test data in COCO format.
+    - **path_to_train** - path to json with training data in COCO format(data_type="COCO") or path to ImageFolder(data_type="IF").
+    - **path_to_val** - path to json with validation data in COCO format(data_type="COCO") or path to ImageFolder(data_type="IF").
+    - **path_to_test** - path to json with test data in COCO format(data_type="COCO") or path to ImageFolder(data_type="IF").
     - **path_to_test_result_output_folder** - path to the folder where *xlsx* files with test results will be saved.
-    - **path_to_pytorch_pretrained_model** - path to pretrained [weights](https://download.pytorch.org/models/resnet34-b627a593.pth).
+    - **path_to_pytorch_pretrained_model** - path to pretrained [weights-RN34](https://download.pytorch.org/models/resnet34-b627a593.pth).
 - **classifier** - classifier settings.
     - **resnet_layers** - number of ResNet layers. Accepted as an argument when initializing resnet. For different ResNet, a different amount is used.
     - **num_classes** - the number of classes for each argument, which are registered in *keys_outputs*.
     - **keys_outputs** - arguments that are used when training the model.
-    - **general_types** - names of all basic types that are used in training. Only needed if *general_types* is in *keys_outputs*.
-    - **types** - names of all types that are used in training. Only needed if *types* is in *keys_outputs*.
+    - **categorical** - If your data (annotations) contain categorical-string values they must be spelled out in <i>categorical</i>. In <i>keys_outputs</i> you specify the key in COCO annotations, in <i>categorical</i> you specify values used in your annotations.
+    
 - **train_config** - training settings.
     - **weights_path** - path to the folder where the weights will be saved.
     - **start_epoch** - start epoch. The default is 0.
@@ -74,7 +75,7 @@ Use docker-compose to build it. Select TRT precision in configs (only fp32 and f
 
 Edit docker-compose.yml: add volume to weights folder at least
 
-P.S. you can check <i>./scripts/Classifier.py -> class ClassifierNew</i> for TensorRT modeling with torch2trt. Only this class is implemented and not used anywere yet
+#### P.S. you can check <i>./scripts/Classifier.py -> class ClassifierNew</i> for TensorRT modeling with torch2trt. Only this class is implemented and not used anywere yet :)
 
 ### Run script 
 ```bash 
