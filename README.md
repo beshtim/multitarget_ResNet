@@ -44,8 +44,8 @@ All settings for training and testing are exclusively in the configs. <br><b> Yo
     - **resnet_layers** - number of ResNet layers. Accepted as an argument when initializing resnet. For different ResNet, a different amount is used.
     - **num_classes** - the number of classes for each argument, which are registered in *keys_outputs*.
     - **keys_outputs** - arguments that are used when training the model.
-    - **categorical** - If your data (annotations) contain categorical-string values they must be spelled out in <i>categorical</i>. In <i>keys_outputs</i> you specify the key in COCO annotations, in <i>categorical</i> you specify values used in your annotations.
-    
+    - **categorical** - If your data (annotations) contain categorical-string values they must be spelled out in <i>categorical</i>. In <i>keys_outputs</i> you specify the key in COCO annotations, in <i>categorical</i> you specify values used in your annotations. See config exmpls for more info.
+
 - **train_config** - training settings.
     - **weights_path** - path to the folder where the weights will be saved.
     - **start_epoch** - start epoch. The default is 0.
