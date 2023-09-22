@@ -112,8 +112,10 @@ def save_data(statistics, confusion_matrix, keys_outputs, path_to_output):
 def test(model_predictor, args):
     ''' PARAMS '''
     # path_to_test_coco_json = args.data.path_to_test_json
-    path_to_output = os.path.join(args.data.path_to_test_result_output_folder,
-                                  args.config_name + '.xlsx')
+    sp = args.data.path_to_test_result_output_folder
+    if not os.path.exists(sp):
+        os.makedirs(sp)
+    path_to_output = os.path.join(sp, args.config_name + '.xlsx')
     
     transform = get_transform(args, train=False)
     
