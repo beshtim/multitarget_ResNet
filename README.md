@@ -113,11 +113,11 @@ docker-compose -f docker/docker-compose.yml up
         "bbox": [<x, y, width, height>],
         "iscrowd": 0,
         "attributes": {
-          "extra_attrib_0": <bool/str>,
+          "extra_attrib_0": <bool/int/str>,
           .
           .
           .
-          "extra_attrib_N": <bool/str>,
+          "extra_attrib_N": <bool/int/str>,
         }
       } ...
     ]
