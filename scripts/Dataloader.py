@@ -72,7 +72,7 @@ class ImFolDataset(Dataset):
         self.keys_outputs = keys_outputs
 
         self.files = glob.glob(path_to_images + '/**/*.jpg', recursive=True)
-        self.mapping = dict((id, fol for id,fol in enumerate(os.listdir(path_to_images))))
+        self.mapping = dict((fol, id_) for id_, fol in enumerate(os.listdir(path_to_images)))
 
     def __len__(self):
         return len(self.files)

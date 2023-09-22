@@ -131,8 +131,11 @@ def get_criterion_weights_coco(args, train_loader):
     return weights
 
 def get_criterion_weights_if(args, train_loader):
+    if not args.train_config.use_criterion_weights:
+        return [None] * len(args.classifier.num_classes)
+    
     data = []
-    for fp in train_loader.files:
+    for fp in train_loader.dataset.files:
         attributes = [os.path.basename(os.path.dirname(fp))]
         data.append(attributes)
     data = np.asanyarray(data).T

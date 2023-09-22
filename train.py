@@ -26,7 +26,7 @@ def main_worker(args):
     val_loader = get_data_loader(args.data_type)(args, args.data.path_to_val, transform, shuffle=False)
     
     # define loss function (criterion) and optimizer
-    criterion = get_criterion(args.data_type)(args, train_loader) 
+    criterion = get_criterion(args, train_loader) 
     
     optimizer = torch.optim.SGD(model.parameters(), args.train_config.learning_rate,
                                 momentum=args.train_config.momentum,
