@@ -59,7 +59,6 @@ def train(train_loader, model, criterion, optimizer, epoch, args):
         if i % args.train_config.print_freq == 0:
             progress.print(i)
 
-
 def validate(val_loader, model, criterion, args):
     print('val')
     batch_time = AverageMeter('Time', ':6.3f')
@@ -107,12 +106,10 @@ def validate(val_loader, model, criterion, args):
     
     return sum([t.avg for t in f1]) / len(f1)
 
-
 def save_checkpoint(state, filename='checkpoint.pth', dir='weights'):
     os.makedirs(dir, exist_ok=True)
     path = os.path.join(dir, filename)
     torch.save(state, path)
-
 
 def get_criterion_weights_coco(args, train_loader):
     if not args.train_config.use_criterion_weights:
@@ -133,10 +130,23 @@ def get_criterion_weights_coco(args, train_loader):
     
     return weights
 
-def get_criterion_weights_if(args, train_loader): #TODO
-    raise NotImplemented
+def get_criterion_weights_if(args, train_loader):
+    data = []
+    for fp in train_loader.files:
+        attributes = [os.path.basename(os.path.dirname(fp))]
+        data.append(attributes)
+    data = np.asanyarray(data).T
+    
+    weights = []
+    for i in range(len(data)):
+        class_weight = compute_class_weight('balanced', classes=np.unique(data[i]), y=data[i])
+        if args.classifier.num_classes[i] == 1:
+            class_weight = class_weight[1] / class_weight[0]
+        weights.append(torch.tensor(class_weight))
+    
+    return weights
 
-def get_criterion_weights(data_type):
+def get_criterion_weights(data_type): #TODO update this for new dataloaders
     if data_type == 'IF':
         return get_criterion_weights_if
     else:
@@ -144,7 +154,7 @@ def get_criterion_weights(data_type):
 
 def get_criterion(args, train_loader):
     criterion = []
-    weights = get_criterion_weights(args, train_loader)
+    weights = get_criterion_weights(args.data_type)(args, train_loader)
     
     for i in range(len(args.classifier.num_classes)):
         if args.classifier.num_classes[i] > 1:
@@ -154,14 +164,11 @@ def get_criterion(args, train_loader):
     
     return criterion
 
-
 def do_nothing(input_img, params=None, transform=None):
     return input_img
 
-
 def enable_if(condition, obj):
     return obj if condition else do_nothing
-
 
 def get_transform(args, train=False):
     transform = [
@@ -205,8 +212,7 @@ def get_data_loader_coco(args, path_to_json, transform, shuffle=True):
                 from_type_to_int = {v: k for k, v in enumerate(args.classifier.categorical.__dict__[key_o])}
                 categorical_type_to_int[key_o] = from_type_to_int
         except AttributeError:
-            categorical_type_to_int = None
-            break
+            continue
     
     dataset = CocoAtribDataset(
         args.data.path_to_images,
@@ -232,7 +238,6 @@ def get_data_loader(data_type):
     else:
         return get_data_loader_coco
 
-
 class AverageMeter(object):
     """Computes and stores the average and current value"""
 
@@ -257,7 +262,6 @@ class AverageMeter(object):
         fmtstr = '{name} {val' + self.fmt + '} ({avg' + self.fmt + '})'
         return fmtstr.format(**self.__dict__)
 
-
 class ProgressMeter(object):
     def __init__(self, num_batches, *meters, prefix=""):
         self.batch_fmtstr = self._get_batch_fmtstr(num_batches)
@@ -274,13 +278,11 @@ class ProgressMeter(object):
         fmt = '{:' + str(num_digits) + 'd}'
         return '[' + fmt + '/' + fmt.format(num_batches) + ']'
 
-
 def adjust_learning_rate(optimizer, epoch, args):
     """Sets the learning rate to the initial LR decayed by 10 every 30 epochs"""
     lr = args.train_config.learning_rate * (0.1 ** (epoch // 30))
     for param_group in optimizer.param_groups:
         param_group['lr'] = lr
-
 
 def accuracy(output, target):
     """Computes the accuracy over the k top predictions for the specified values of k"""

@@ -14,7 +14,7 @@
         "block_str": "BasicBlock",
 
         "num_classes": [11, 23, 1, 1, 4],
-        "keys_outputs": ["general_type[0-10]", "type[0-22]", "bool_attrib1", "bool_attrib2", "int_attrib[0-3]"],
+        "keys_outputs": ["general_type", "type", "bool_attrib1", "bool_attrib2", "int_attrib[0-3]"],
 
         "categorical": {
             "general_type": ["gen_type_0", "gen_type_1", "gen_type_2", "gen_type_3", "gen_type_4", "gen_type_5", "gen_type_6", "gen_type_7", "gen_type_8", "gen_type_9", "gen_type_10"],

@@ -111,7 +111,7 @@ def save_data(statistics, confusion_matrix, keys_outputs, path_to_output):
 
 def test(model_predictor, args):
     ''' PARAMS '''
-    path_to_test_coco_json = args.data.path_to_test_json
+    # path_to_test_coco_json = args.data.path_to_test_json
     path_to_output = os.path.join(args.data.path_to_test_result_output_folder,
                                   args.config_name + '.xlsx')
     
@@ -121,11 +121,20 @@ def test(model_predictor, args):
     
     num_classes = args.classifier.num_classes
     keys_outputs = args.classifier.keys_outputs
-    general_types = args.classifier.general_types if hasattr(args.classifier, 'general_types') else None
-    types = args.classifier.types if hasattr(args.classifier, 'types') else None
+
+    categorical_names = {}
+
+    for key_o in keys_outputs:
+        try:
+            if key_o in args.classifier.categorical.__dict__.keys():
+                types_names = list(args.classifier.categorical.__dict__[key_o])
+                categorical_names[key_o] = types_names
+        except AttributeError:
+            continue
+
     ''''''
     
-    testloader = get_data_loader(args, path_to_test_coco_json, transform, shuffle=False)
+    testloader = get_data_loader(args.data_type)(args, args.data.path_to_test, transform, shuffle=False)
     
     # init cols names for tables
     total_col = 'total'
@@ -142,10 +151,8 @@ def test(model_predictor, args):
     confusion_matrix = []
     for i, num in enumerate(num_classes):
         if num != 1:
-            if keys_outputs[i] == 'general_type':
-                index = general_types
-            elif keys_outputs[i] == 'type':
-                index = types
+            if keys_outputs[i] in categorical_names:
+                index = categorical_names[keys_outputs[i]]
             else:
                 index = list(range(num))
             df = pd.DataFrame(0, index=index + ['Sum'], columns=cols)
