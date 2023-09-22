@@ -1,9 +1,9 @@
 version: '2.3'
 
 services:
-  classifier:
+  multirn:
     restart: "no"
-    container_name: classifier
+    container_name: multirn
     mem_limit: 8G
     build:
       context: ../
@@ -11,7 +11,7 @@ services:
     runtime: nvidia
     environment:
      - NVIDIA_VISIBLE_DEVICES=all
-    image: classifier:latest
+    image: multirn:latest
     volumes:
       - /path/on/local:/path/in/container # if needed
     network_mode: host

@@ -5,7 +5,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 
 RUN pip install -U pip
 
-ARG PROJECT=classifier
+ARG PROJECT=multirn
 ARG PROJECT_DIR=/${PROJECT}
 RUN mkdir -p $PROJECT_DIR
 WORKDIR $PROJECT_DIR
