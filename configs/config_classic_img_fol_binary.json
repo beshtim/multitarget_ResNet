@@ -11,7 +11,8 @@
     },
     "classifier": {
         "resnet_layers": [3, 4, 6, 3],
-
+        "block_str": "BasicBlock",
+        
         "keys_outputs": ["name"],
         "num_classes": [1]
     },

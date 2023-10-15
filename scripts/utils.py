@@ -10,7 +10,161 @@ from kornia.augmentation import RandomMotionBlur, RandomPlanckianJitter, RandomA
 from torchvision import transforms as T
 from sklearn.metrics import f1_score as f1_score_metric
 from sklearn.utils.class_weight import compute_class_weight
-from scripts.Dataloader import CocoAtribDataset, ImFolDataset
+from scripts.Dataloader import CocoAtribDataset, ImFolDataset, CSVDataset
+
+class Handler:
+    def __new__(cls, data_type):
+
+        mp = {"IF": IFChooser, "CSV": CSVChooser, "COCO": COCOChooser}
+
+        if data_type not in mp.keys():
+            raise NotImplementedError
+        
+        instance = super().__new__(mp[data_type])
+
+        print(f'DataType is {data_type}')
+        return instance
+
+class CSVChooser:
+    def get_data_loader(self, args, path_2_data, transform, shuffle=True): #TODO
+    
+        # dataset = ImFolDataset(
+        #     path_2_data,
+        #     transform
+        # )
+        
+        # loader = torch.utils.data.DataLoader(
+        #     dataset,
+        #     batch_size=args.train_config.batch_size,
+        #     shuffle=shuffle,
+        #     num_workers=args.train_config.workers,
+        #     pin_memory=True
+        # )
+        
+        # return loader
+        pass
+
+    def get_criterion_weights(self, args, train_loader): #TODO
+        # if not args.train_config.use_criterion_weights:
+        #     return [None] * len(args.classifier.num_classes)
+        
+        # data = []
+        # for fp in train_loader.dataset.files:
+        #     attributes = [os.path.basename(os.path.dirname(fp))]
+        #     data.append(attributes)
+        # data = np.asanyarray(data).T
+        
+        # weights = []
+        # for i in range(len(data)):
+        #     class_weight = compute_class_weight('balanced', classes=np.unique(data[i]), y=data[i])
+        #     if args.classifier.num_classes[i] == 1:
+        #         class_weight = class_weight[1] / class_weight[0]
+        #     weights.append(torch.tensor(class_weight))
+        
+        # return weights
+        pass
+
+
+class CriterionMixin:
+    def get_criterion(self, args, train_loader):
+        criterion = []
+        weights = self.get_criterion_weights(args, train_loader)
+        
+        for i in range(len(args.classifier.num_classes)):
+            if args.classifier.num_classes[i] > 1:
+                criterion.append(nn.CrossEntropyLoss(weights[i]))
+            else:
+                criterion.append(nn.BCEWithLogitsLoss(pos_weight=weights[i]))
+        
+        return criterion
+
+class IFChooser(CriterionMixin):
+    def get_data_loader(self, args, path_2_data, transform, shuffle=True):
+    
+        dataset = ImFolDataset(
+            path_2_data,
+            transform
+        )
+        
+        loader = torch.utils.data.DataLoader(
+            dataset,
+            batch_size=args.train_config.batch_size,
+            shuffle=shuffle,
+            num_workers=args.train_config.workers,
+            pin_memory=True
+        )
+        
+        return loader
+
+    def get_criterion_weights(self, args, train_loader):
+        if not args.train_config.use_criterion_weights:
+            return [None] * len(args.classifier.num_classes)
+        
+        data = []
+        for fp in train_loader.dataset.files:
+            attributes = [os.path.basename(os.path.dirname(fp))]
+            data.append(attributes)
+        data = np.asanyarray(data).T
+        
+        weights = []
+        for i in range(len(data)):
+            class_weight = compute_class_weight('balanced', classes=np.unique(data[i]), y=data[i])
+            if args.classifier.num_classes[i] == 1:
+                class_weight = class_weight[1] / class_weight[0]
+            weights.append(torch.tensor(class_weight))
+        
+        return weights
+
+
+class COCOChooser(CriterionMixin):
+    def get_data_loader(self, args, path_to_json, transform, shuffle=True):
+        
+        categorical_type_to_int = {}
+
+        for key_o in args.classifier.keys_outputs:
+            try:
+                if key_o in args.classifier.categorical.__dict__.keys():
+                    from_type_to_int = {v: k for k, v in enumerate(args.classifier.categorical.__dict__[key_o])}
+                    categorical_type_to_int[key_o] = from_type_to_int
+            except AttributeError:
+                continue
+        
+        dataset = CocoAtribDataset(
+            args.data.path_to_images,
+            path_to_json,
+            args.classifier.keys_outputs,
+            transform,
+            categorical_type_to_int
+        )
+        
+        loader = torch.utils.data.DataLoader(
+            dataset,
+            batch_size=args.train_config.batch_size,
+            shuffle=shuffle,
+            num_workers=args.train_config.workers,
+            pin_memory=True
+        )
+        
+        return loader
+    
+    def get_criterion_weights(self, args, train_loader):
+        if not args.train_config.use_criterion_weights:
+            return [None] * len(args.classifier.num_classes)
+        
+        data = []
+        for ann in train_loader.dataset.annotations:
+            attributes = [int(ann['attributes'][key]) for key in train_loader.dataset.keys_outputs]
+            data.append(attributes)
+        data = np.asanyarray(data).T
+        
+        weights = []
+        for i in range(len(data)):
+            class_weight = compute_class_weight('balanced', classes=np.unique(data[i]), y=data[i])
+            if args.classifier.num_classes[i] == 1:
+                class_weight = class_weight[1] / class_weight[0]
+            weights.append(torch.tensor(class_weight))
+        
+        return weights
 
 
 def train(train_loader, model, criterion, optimizer, epoch, args):
@@ -111,62 +265,6 @@ def save_checkpoint(state, filename='checkpoint.pth', dir='weights'):
     path = os.path.join(dir, filename)
     torch.save(state, path)
 
-def get_criterion_weights_coco(args, train_loader):
-    if not args.train_config.use_criterion_weights:
-        return [None] * len(args.classifier.num_classes)
-    
-    data = []
-    for ann in train_loader.dataset.annotations:
-        attributes = [int(ann['attributes'][key]) for key in train_loader.dataset.keys_outputs]
-        data.append(attributes)
-    data = np.asanyarray(data).T
-    
-    weights = []
-    for i in range(len(data)):
-        class_weight = compute_class_weight('balanced', classes=np.unique(data[i]), y=data[i])
-        if args.classifier.num_classes[i] == 1:
-            class_weight = class_weight[1] / class_weight[0]
-        weights.append(torch.tensor(class_weight))
-    
-    return weights
-
-def get_criterion_weights_if(args, train_loader):
-    if not args.train_config.use_criterion_weights:
-        return [None] * len(args.classifier.num_classes)
-    
-    data = []
-    for fp in train_loader.dataset.files:
-        attributes = [os.path.basename(os.path.dirname(fp))]
-        data.append(attributes)
-    data = np.asanyarray(data).T
-    
-    weights = []
-    for i in range(len(data)):
-        class_weight = compute_class_weight('balanced', classes=np.unique(data[i]), y=data[i])
-        if args.classifier.num_classes[i] == 1:
-            class_weight = class_weight[1] / class_weight[0]
-        weights.append(torch.tensor(class_weight))
-    
-    return weights
-
-def get_criterion_weights(data_type): #TODO update this for new dataloaders
-    if data_type == 'IF':
-        return get_criterion_weights_if
-    else:
-        return get_criterion_weights_coco
-
-def get_criterion(args, train_loader):
-    criterion = []
-    weights = get_criterion_weights(args.data_type)(args, train_loader)
-    
-    for i in range(len(args.classifier.num_classes)):
-        if args.classifier.num_classes[i] > 1:
-            criterion.append(nn.CrossEntropyLoss(weights[i]))
-        else:
-            criterion.append(nn.BCEWithLogitsLoss(pos_weight=weights[i]))
-    
-    return criterion
-
 def do_nothing(input_img, params=None, transform=None):
     return input_img
 
@@ -186,60 +284,6 @@ def get_transform(args, train=False):
     output = [T.ToTensor()] + transform + [resize, normalize]
     
     return T.Compose(output)
-
-def get_data_loader_if(args, path_2_data, transform, shuffle=True):
-    
-    dataset = ImFolDataset(
-        path_2_data,
-        args.classifier.keys_outputs,
-        transform
-    )
-    
-    loader = torch.utils.data.DataLoader(
-        dataset,
-        batch_size=args.train_config.batch_size,
-        shuffle=shuffle,
-        num_workers=args.train_config.workers,
-        pin_memory=True
-    )
-    
-    return loader
-
-def get_data_loader_coco(args, path_to_json, transform, shuffle=True):
-    
-    categorical_type_to_int = {}
-
-    for key_o in args.classifier.keys_outputs:
-        try:
-            if key_o in args.classifier.categorical.__dict__.keys():
-                from_type_to_int = {v: k for k, v in enumerate(args.classifier.categorical.__dict__[key_o])}
-                categorical_type_to_int[key_o] = from_type_to_int
-        except AttributeError:
-            continue
-    
-    dataset = CocoAtribDataset(
-        args.data.path_to_images,
-        path_to_json,
-        args.classifier.keys_outputs,
-        transform,
-        categorical_type_to_int
-    )
-    
-    loader = torch.utils.data.DataLoader(
-        dataset,
-        batch_size=args.train_config.batch_size,
-        shuffle=shuffle,
-        num_workers=args.train_config.workers,
-        pin_memory=True
-    )
-    
-    return loader
-
-def get_data_loader(data_type):
-    if data_type == 'IF':
-        return get_data_loader_if
-    else:
-        return get_data_loader_coco
 
 class AverageMeter(object):
     """Computes and stores the average and current value"""

@@ -31,17 +31,18 @@ where *your_config.json* is the config with your settings.
 All settings for training and testing are exclusively in the configs. <br><b> You may need to tweak the Dataloader for your dataset </b>
 
 - **config_name** - config name. This name is used when saving weights and tests.
-- **data_type** - currently "IF" - for standart PyTorch ImageFolder(not multilabel) or "COCO"(supports multilabel).
+- **data_type** - "IF" - for standart PyTorch ImageFolder(not multilabel) or "COCO"(supports multilabel).
 - **data** - contains paths to data and folders.
 
-    - **path_to_images** - path to the folder with images.
-    - **path_to_train** - path to json with training data in COCO format(data_type="COCO") or path to ImageFolder(data_type="IF").
-    - **path_to_val** - path to json with validation data in COCO format(data_type="COCO") or path to ImageFolder(data_type="IF").
-    - **path_to_test** - path to json with test data in COCO format(data_type="COCO") or path to ImageFolder(data_type="IF").
+    - **path_to_images** - path to the folder with images (for COCO and CSV data_type).
+    - **path_to_train** - path to json with in COCO format(data_type="COCO") or path to ImageFolder(data_type="IF") or path to csv(data_type="CSV").
+    - **path_to_val** - path to json with in COCO format(data_type="COCO") or path to ImageFolder(data_type="IF") or path to csv(data_type="CSV").
+    - **path_to_test** - path to json with in COCO format(data_type="COCO") or path to ImageFolder(data_type="IF") or path to csv(data_type="CSV").
     - **path_to_test_result_output_folder** - path to the folder where *xlsx* files with test results will be saved.
     - **path_to_pytorch_pretrained_model** - path to pretrained [weights-RN34](https://download.pytorch.org/models/resnet34-b627a593.pth).
 - **classifier** - classifier settings.
     - **resnet_layers** - number of ResNet layers. Accepted as an argument when initializing resnet. For different ResNet, a different amount is used.
+    - **block_str** - "BasicBlock" or "Bottleneck" for different resnet_layers(for RN34 use BasicBlock for RN50 use Bottleneck)
     - **num_classes** - the number of classes for each argument, which are registered in *keys_outputs*.
     - **keys_outputs** - arguments that are used when training the model.
     - **categorical** - If your data (annotations) contain categorical-string values they must be spelled out in <i>categorical</i>. In <i>keys_outputs</i> you specify the key in COCO annotations, in <i>categorical</i> you specify values used in your annotations. See config exmpls for more info.

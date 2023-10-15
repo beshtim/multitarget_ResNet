@@ -6,7 +6,7 @@ import torch
 import torch.optim
 import torch.backends.cudnn as cudnn
 
-from scripts.utils import *
+from scripts.utils import (get_transform, Handler, train, adjust_learning_rate, validate, save_checkpoint)
 from scripts.Classifier import ResNetTL
 from types import SimpleNamespace
 
@@ -19,14 +19,16 @@ def main_worker(args):
     model = ResNetTL(layers=args.classifier.resnet_layers, num_classes=args.classifier.num_classes)
     model = model.cuda()
 
+    handler = Handler(args.data_type) # used to load correct logic for different data_types 
+
     # Data loading code
     transform = get_transform(args, train=True)
-    train_loader = get_data_loader(args.data_type)(args, args.data.path_to_train, transform)
+    train_loader = handler.get_data_loader(args, args.data.path_to_train, transform)
     transform = get_transform(args, train=False)
-    val_loader = get_data_loader(args.data_type)(args, args.data.path_to_val, transform, shuffle=False)
+    val_loader = handler.get_data_loader(args.data_type)(args, args.data.path_to_val, transform, shuffle=False)
     
     # define loss function (criterion) and optimizer
-    criterion = get_criterion(args, train_loader) 
+    criterion = handler.get_criterion(args, train_loader) 
     
     optimizer = torch.optim.SGD(model.parameters(), args.train_config.learning_rate,
                                 momentum=args.train_config.momentum,

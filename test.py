@@ -8,7 +8,7 @@ import pandas as pd
 from tabulate import tabulate
 from types import SimpleNamespace
 from scripts.Classifier import ResNetTL, Predictor, ClassifierNew
-from scripts.utils import get_data_loader, get_transform
+from scripts.utils import Handler, get_transform
 
 
 def save_data(statistics, confusion_matrix, keys_outputs, path_to_output):
@@ -133,10 +133,11 @@ def test(model_predictor, args):
                 categorical_names[key_o] = types_names
         except AttributeError:
             continue
-
+    
+    handler = Handler(args.data_type)
     ''''''
     
-    testloader = get_data_loader(args.data_type)(args, args.data.path_to_test, transform, shuffle=False)
+    testloader = handler.get_data_loader(args, args.data.path_to_test, transform, shuffle=False)
     
     # init cols names for tables
     total_col = 'total'

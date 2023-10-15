@@ -62,14 +62,62 @@ class CocoAtribDataset(Dataset):
         
         return image_cut, output
 
-class ImFolDataset(Dataset):
+class CSVDataset(Dataset):
     def __init__(self,
                  path_to_images,
-                 keys_outputs: list,
-                 transform=None):
+                 csv_path,
+                 keys_outputs,
+                 transform=None,
+                 categorical_type_to_int: dict=None,
+                 need_crop: bool=False) -> None:
+        
+        import pandas as pd
+
         self.path_to_images = path_to_images
         self.transform = transform
         self.keys_outputs = keys_outputs
+        self.need_crop = need_crop
+
+        df = pd.read_csv(csv_path)
+
+        if categorical_type_to_int:
+            for key_o in categorical_type_to_int.keys():
+                df[key_o] = df[key_o].map(categorical_type_to_int[key_o])
+        self.data = df
+
+    def __len__(self):
+        return len(self.data)
+
+    def __getitem__(self, idx):
+        annotation = self.data.iloc[idx].to_dict()
+        # annotation = self.annotations[idx]
+        if 'bbox' in annotation.keys():
+            bbox = np.array(annotation['bbox']).astype(int)
+        else:
+            self.need_crop = False # just in case of forgetting to set it to False
+
+        path_to_image = os.path.join(self.path_to_images, annotation['im_name'])
+        
+        img = Image.open(path_to_image)  # RGB
+        r, g, b = img.split()
+        img = Image.merge("RGB", (b, g, r))  # BGR
+        if self.need_crop:
+            img = img.crop((bbox[0], bbox[1], bbox[2], bbox[3]))
+        
+        if self.transform:
+            image_cut = self.transform(img)
+        image_cut = image_cut[0][[2, 1, 0], :, :]
+        
+        output = [int(annotation[key]) for key in self.keys_outputs]
+        
+        return image_cut, output
+
+class ImFolDataset(Dataset):
+    def __init__(self,
+                 path_to_images,
+                 transform=None):
+        self.path_to_images = path_to_images
+        self.transform = transform
 
         self.files = glob.glob(path_to_images + '/**/*.jpg', recursive=True)
         self.mapping = dict((fol, id_) for id_, fol in enumerate(os.listdir(path_to_images)))
