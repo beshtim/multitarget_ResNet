@@ -62,8 +62,8 @@ class CSVChooser:
             return [None] * len(args.classifier.num_classes)
         
         data = []
-        for ann in train_loader.dataset.data:
-            attributes = [int(ann['attributes'][key]) for key in train_loader.dataset.keys_outputs]
+        for _, ann in train_loader.dataset.data.iterrows():
+            attributes = [int(ann[key]) for key in train_loader.dataset.keys_outputs]
             data.append(attributes)
         data = np.asanyarray(data).T
         
@@ -75,7 +75,6 @@ class CSVChooser:
             weights.append(torch.tensor(class_weight))
         
         return weights
-        pass
 
 class CriterionMixin:
     def get_criterion(self, args, train_loader):
