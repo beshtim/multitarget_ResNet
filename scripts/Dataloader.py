@@ -90,11 +90,9 @@ class CSVDataset(Dataset):
 
     def __getitem__(self, idx):
         annotation = self.data.iloc[idx].to_dict()
-        # annotation = self.annotations[idx]
-        if 'bbox' in annotation.keys():
+        
+        if self.need_crop:
             bbox = np.array(annotation['bbox']).astype(int)
-        else:
-            self.need_crop = False # just in case of forgetting to set it to False
 
         path_to_image = os.path.join(self.path_to_images, annotation['im_name'])
         

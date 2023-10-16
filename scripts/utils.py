@@ -26,44 +26,56 @@ class Handler:
         return instance
 
 class CSVChooser:
-    def get_data_loader(self, args, path_2_data, transform, shuffle=True): #TODO
+    def get_data_loader(self, args, path_to_csv, transform, shuffle=True): 
     
-        # dataset = ImFolDataset(
-        #     path_2_data,
-        #     transform
-        # )
-        
-        # loader = torch.utils.data.DataLoader(
-        #     dataset,
-        #     batch_size=args.train_config.batch_size,
-        #     shuffle=shuffle,
-        #     num_workers=args.train_config.workers,
-        #     pin_memory=True
-        # )
-        
-        # return loader
-        pass
+        categorical_type_to_int = {}
 
-    def get_criterion_weights(self, args, train_loader): #TODO
-        # if not args.train_config.use_criterion_weights:
-        #     return [None] * len(args.classifier.num_classes)
+        for key_o in args.classifier.keys_outputs:
+            try:
+                if key_o in args.classifier.categorical.__dict__.keys():
+                    from_type_to_int = {v: k for k, v in enumerate(args.classifier.categorical.__dict__[key_o])}
+                    categorical_type_to_int[key_o] = from_type_to_int
+            except AttributeError:
+                continue
         
-        # data = []
-        # for fp in train_loader.dataset.files:
-        #     attributes = [os.path.basename(os.path.dirname(fp))]
-        #     data.append(attributes)
-        # data = np.asanyarray(data).T
+        dataset = CSVDataset(
+            args.data.path_to_images,
+            path_to_csv,
+            args.classifier.keys_outputs,
+            transform,
+            categorical_type_to_int,
+            #TODO add need_crop 2 args
+        )
         
-        # weights = []
-        # for i in range(len(data)):
-        #     class_weight = compute_class_weight('balanced', classes=np.unique(data[i]), y=data[i])
-        #     if args.classifier.num_classes[i] == 1:
-        #         class_weight = class_weight[1] / class_weight[0]
-        #     weights.append(torch.tensor(class_weight))
+        loader = torch.utils.data.DataLoader(
+            dataset,
+            batch_size=args.train_config.batch_size,
+            shuffle=shuffle,
+            num_workers=args.train_config.workers,
+            pin_memory=True
+        )
         
-        # return weights
-        pass
+        return loader
 
+    def get_criterion_weights(self, args, train_loader): 
+        if not args.train_config.use_criterion_weights:
+            return [None] * len(args.classifier.num_classes)
+        
+        data = []
+        for ann in train_loader.dataset.data:
+            attributes = [int(ann['attributes'][key]) for key in train_loader.dataset.keys_outputs]
+            data.append(attributes)
+        data = np.asanyarray(data).T
+        
+        weights = []
+        for i in range(len(data)):
+            class_weight = compute_class_weight('balanced', classes=np.unique(data[i]), y=data[i])
+            if args.classifier.num_classes[i] == 1:
+                class_weight = class_weight[1] / class_weight[0]
+            weights.append(torch.tensor(class_weight))
+        
+        return weights
+        pass
 
 class CriterionMixin:
     def get_criterion(self, args, train_loader):
@@ -115,7 +127,6 @@ class IFChooser(CriterionMixin):
         
         return weights
 
-
 class COCOChooser(CriterionMixin):
     def get_data_loader(self, args, path_to_json, transform, shuffle=True):
         
@@ -165,7 +176,6 @@ class COCOChooser(CriterionMixin):
             weights.append(torch.tensor(class_weight))
         
         return weights
-
 
 def train(train_loader, model, criterion, optimizer, epoch, args):
     batch_time = AverageMeter('Time', ':6.3f')
